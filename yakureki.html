@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>薬歴ガイド - 社内情報共有サイト</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>薬歴ガイド</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">ホーム</a></li>
+                <li><a href="yakureki.html" class="active">薬歴ガイド</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="intro">
+            <h2>調剤薬局レセコンの報酬計算：仕組みと実装詳細</h2>
+            <p>調剤薬局で利用されるレセプトコンピュータ（レセコン）の報酬計算の仕組みと、保守メーカーが受ける問い合わせ内容について詳しく解説します。</p>
+        </section>
+
+        <section class="content-section">
+            <h2>調剤報酬の基本構造</h2>
+            
+            <div class="reward-structure">
+                <div class="reward-item">
+                    <h3>調剤技術料</h3>
+                    <p>薬局の体制や薬剤師の専門技術に対する報酬</p>
+                    <ul>
+                        <li>調剤基本料</li>
+                        <li>薬剤調製料</li>
+                        <li>各種加算料（時間外対応、後発医薬品体制、在宅対応など）</li>
+                    </ul>
+                </div>
+
+                <div class="reward-item">
+                    <h3>薬学管理料</h3>
+                    <p>薬剤服用歴の記録管理や服薬指導に対する報酬</p>
+                    <ul>
+                        <li>薬剤服用歴管理指導料</li>
+                        <li>重複投薬防止</li>
+                        <li>特定疾患患者指導</li>
+                        <li>かかりつけ薬剤師指導料</li>
+                    </ul>
+                </div>
+
+                <div class="reward-item">
+                    <h3>薬剤料</h3>
+                    <p>調剤された医薬品そのものの価格</p>
+                    <ul>
+                        <li>薬価基準に基づく算出</li>
+                        <li>全国どの保険薬局でも同一価格</li>
+                        <li>端数計算：薬価15円未満は1点、それ以上は薬価10円ごとに1点</li>
+                    </ul>
+                </div>
+
+                <div class="reward-item">
+                    <h3>特定保健医療材料費</h3>
+                    <p>自己注射の注射器や在宅医療で使用する医療材料の費用</p>
+                    <ul>
+                        <li>公定価格に基づく点数化</li>
+                        <li>該当する場合のみ算定</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="calculation-rule">
+                <h3>点数の算定</h3>
+                <p><strong>1点 = 10円</strong></p>
+                <p>調剤報酬点数表に基づき、上記（1）〜（4）の各点数を合算したものが請求点数となります。</p>
+                <p>調剤報酬点数表は<strong>2年に1度</strong>見直され、最新の制度では2024年に改定が行われました。</p>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>レセコンの自動算定ロジック</h2>
+            
+            <div class="logic-section">
+                <h3>自動算定エンジン</h3>
+                <p>薬局事務担当者が処方箋の内容を入力すると、レセコンが内蔵する点数マスターと算定ルールに基づき調剤報酬点数を自動計算します。</p>
+                
+                <div class="logic-features">
+                    <div class="feature-item">
+                        <h4>マスタ更新</h4>
+                        <p>調剤報酬の改定時には、新しい点数表に対応するためレセコンのマスタ更新が必要</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <h4>算定ルールチェック</h4>
+                        <p>併算定禁止項目の重複や、年齢・性別による算定制限のチェック</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <h4>入力データチェック</h4>
+                        <p>患者基本情報の未入力や不正形式の検出</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <h4>マスタ適合性チェック</h4>
+                        <p>医薬品マスターとの照合により、入力された薬剤コードの妥当性確認</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>よくある問い合わせ</h2>
+            
+            <div class="inquiry-grid">
+                <div class="inquiry-item">
+                    <h3>算定された点数が合わない</h3>
+                    <p>レセコン計算結果と薬剤師の試算が異なる場合の問い合わせ</p>
+                    <div class="causes">
+                        <h4>原因</h4>
+                        <ul>
+                            <li>入力ミス</li>
+                            <li>算定条件の誤解</li>
+                            <li>システム不具合</li>
+                            <li>マスタ未更新</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="inquiry-item">
+                    <h3>算定ルールの適用がおかしい</h3>
+                    <p>特定のケースでレセコンが算定を拒否・減点する際の問い合わせ</p>
+                    <div class="example">
+                        <h4>例</h4>
+                        <p>同日に2件処方箋を受け付けた患者で2枚目以降の基本料が自動減算された場合</p>
+                    </div>
+                </div>
+
+                <div class="inquiry-item">
+                    <h3>月次処理・請求業務</h3>
+                    <p>毎月のレセプト請求事務に関連する問い合わせ</p>
+                    <div class="examples">
+                        <h4>例</h4>
+                        <ul>
+                            <li>レセプトの締め処理の手順確認</li>
+                            <li>月遅れ請求の操作方法</li>
+                            <li>受付不能エラーの原因調査</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="inquiry-item">
+                    <h3>オンライン請求エラー</h3>
+                    <p>オンライン請求システムへのデータ送信時のエラー対応</p>
+                    <div class="error-types">
+                        <h4>エラータイプ</h4>
+                        <ul>
+                            <li>受付不能エラー</li>
+                            <li>形式エラー</li>
+                            <li>資格情報エラー</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>学習クイズ</h2>
+            
+            <div class="quiz-intro">
+                <p>調剤報酬とレセコン運用に関する知識をクイズ形式で確認できます。新人研修や自己学習の確認にご活用ください。</p>
+            </div>
+
+            <div class="quiz-categories">
+                <div class="quiz-category">
+                    <h3>調剤報酬制度の構造と点数改定</h3>
+                    <p>20問</p>
+                    <div class="sample-question">
+                        <h4>サンプル問題</h4>
+                        <p><strong>Q.</strong> 調剤報酬は何点×円で計算される？</p>
+                        <p><strong>A.</strong> 1点＝10円</p>
+                    </div>
+                </div>
+
+                <div class="quiz-category">
+                    <h3>各種加算・薬学管理料</h3>
+                    <p>20問</p>
+                    <div class="sample-question">
+                        <h4>サンプル問題</h4>
+                        <p><strong>Q.</strong> 薬学管理料の代表的な項目は？</p>
+                        <p><strong>A.</strong> 薬剤服用歴管理指導料</p>
+                    </div>
+                </div>
+
+                <div class="quiz-category">
+                    <h3>レセコンの機能とチェック機能</h3>
+                    <p>20問</p>
+                    <div class="sample-question">
+                        <h4>サンプル問題</h4>
+                        <p><strong>Q.</strong> レセコンの点数計算は何をもとに行われる？</p>
+                        <p><strong>A.</strong> 処方箋情報</p>
+                    </div>
+                </div>
+
+                <div class="quiz-category">
+                    <h3>オンライン請求・エラー対応</h3>
+                    <p>20問</p>
+                    <div class="sample-question">
+                        <h4>サンプル問題</h4>
+                        <p><strong>Q.</strong> オンライン請求の提出先として正しいのは？</p>
+                        <p><strong>A.</strong> 支払基金・国保連合会</p>
+                    </div>
+                </div>
+
+                <div class="quiz-category">
+                    <h3>操作ミス・施設基準・設定管理</h3>
+                    <p>20問</p>
+                    <div class="sample-question">
+                        <h4>サンプル問題</h4>
+                        <p><strong>Q.</strong> 調剤報酬の加算がレセコンで出せないとき、まず確認すべきは？</p>
+                        <p><strong>A.</strong> 施設基準設定の有無</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>トラブルシューティング</h2>
+            
+            <div class="troubleshooting-grid">
+                <div class="trouble-item">
+                    <h3>点数計算が合わない場合</h3>
+                    <ol>
+                        <li>レセコンのマスタ更新状況を確認</li>
+                        <li>入力データの再チェック</li>
+                        <li>算定ルールの再確認</li>
+                        <li>保守メーカーへ問い合わせ</li>
+                    </ol>
+                </div>
+
+                <div class="trouble-item">
+                    <h3>算定できない・エラーになる場合</h3>
+                    <ol>
+                        <li>エラーメッセージの内容を確認</li>
+                        <li>施設基準設定の確認</li>
+                        <li>併算定不可の組み合わせチェック</li>
+                        <li>マニュアルやFAQの参照</li>
+                    </ol>
+                </div>
+
+                <div class="trouble-item">
+                    <h3>月次請求処理のトラブル</h3>
+                    <ol>
+                        <li>電算データのバックアップ</li>
+                        <li>システムの再起動</li>
+                        <li>支払基金・国保連合会への連絡</li>
+                        <li>月遅れ請求への切り替え</li>
+                    </ol>
+                </div>
+
+                <div class="trouble-item">
+                    <h3>オンライン請求エラー</h3>
+                    <ol>
+                        <li>エラーコードの確認</li>
+                        <li>受付ファイル内容の点検</li>
+                        <li>患者の保険証情報の再確認</li>
+                        <li>事前点検機能の活用</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 社内情報共有サイト. All rights reserved.</p>
+    </footer>
+</body>
+</html>
